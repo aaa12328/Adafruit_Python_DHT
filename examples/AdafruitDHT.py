@@ -46,9 +46,11 @@ def post_to_mcs(payload):
 import sys
 import time
 import Adafruit_DHT
+import RPi.GPIO as GPIO
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(17,GPIO.IN,pull_up_down=GPIO.PUD_UP)
 
-
-# Parse command line parameters.
+#Parse command line parameters.
 sensor_args = { '11': Adafruit_DHT.DHT11,
                 '22': Adafruit_DHT.DHT22,
                 '2302': Adafruit_DHT.AM2302 }
@@ -75,9 +77,13 @@ while True:
 	humidity,temperature= Adafruit_DHT.read_retry(sensor, pin)
 	if humidity is not None and temperature is not None:
 	    print('Temp={0:0.1f}*  Humidity={1:0.1f}%'.format(temperature, humidity))
-	    payload = {"datapoints":[{"dataChnId":"Humi","values":{"value":humidity}},{"dataChnId":"Temp","values":{"value":temperature}}]} 
+	    switchstatus=GPIO.input(17)
+	    if(switchstatus ==0):
+		print('Button pressed')
+	    else:
+		print('botton released')
+	    payload = {"datapoints":[{"dataChnId":"Humi","values":{"value":humidity}},{"dataChnId":"Temp","values":{"value":temperature}},{"dataChnId":"switchstatus","values":{"value":switchstatus}}]} 
 	    post_to_mcs(payload)
-	    time.sleep(10)
 else:
 	    print('Failed to get reading. Try again!')
 	    sys.exit(1)
